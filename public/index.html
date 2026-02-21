@@ -3,117 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>梅花义理推演系统</title>
+    <title>梅花义理·数智引擎</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { font-family: 'PingFang SC', 'Microsoft YaHei', serif; background-color: #f5f5f7; color: #333; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; height: 100vh; box-sizing: border-box; }
+        :root { --main-color: #333; --bg-color: #f5f5f7; --accent-color: #b22222; }
+        body { font-family: 'PingFang SC', serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 800px; }
         .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { margin: 0; font-size: 24px; font-weight: 400; letter-spacing: 2px; }
-        .header p { color: #888; font-size: 14px; margin-top: 8px; }
-        .chat-box { width: 100%; max-width: 800px; flex: 1; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow-y: auto; padding: 25px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 20px; }
-        .message { padding: 15px 20px; border-radius: 8px; max-width: 85%; line-height: 1.7; font-size: 15px; word-wrap: break-word; }
-        .user-msg { background-color: #333; color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .bot-msg { background-color: #f9f9fa; color: #222; border: 1px solid #eee; align-self: flex-start; border-bottom-left-radius: 2px; }
         
-        /* 迎宾卡片特殊美化 */
-        .welcome-card { background-color: #fffdf8; border: 1px solid #f0e6d2; color: #5a4a42; max-width: 90%; margin: 0 auto; align-self: center; border-radius: 12px; }
-        .welcome-card h3 { margin-top: 0; margin-bottom: 15px; font-size: 18px; font-weight: normal; color: #8b5a2b; border-bottom: 1px dashed #e6d2b8; padding-bottom: 10px; text-align: center; }
-        .welcome-card ul { padding-left: 20px; margin: 15px 0; color: #665544; }
-        .welcome-card li { margin-bottom: 10px; }
+        /* 起卦控制台样式 */
+        .casting-panel { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e0e0e0; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .tab-btn { padding: 8px 15px; cursor: pointer; border: none; background: none; color: #666; font-size: 14px; }
+        .tab-btn.active { color: var(--accent-color); font-weight: bold; border-bottom: 2px solid var(--accent-color); }
+        .method-content { display: none; margin-top: 10px; }
+        .method-content.active { display: block; }
         
-        .input-area { width: 100%; max-width: 800px; display: flex; gap: 10px; }
-        input { flex: 1; padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border 0.3s; }
-        input:focus { border-color: #333; }
-        button { padding: 0 25px; background-color: #333; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; letter-spacing: 1px; transition: background 0.3s; white-space: nowrap; }
-        button:hover { background-color: #555; }
-        .loading { display: none; align-self: flex-start; font-size: 14px; color: #888; font-style: italic; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-right: 5px; font-size: 14px; }
+        .gua-display { display: flex; justify-content: space-around; background: #fffdf8; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px dashed #dcd0ba; display: none; }
+        .gua-item { text-align: center; }
+        .gua-symbol { font-size: 30px; line-height: 1; margin-bottom: 5px; color: var(--main-color); }
         
-        /* 推演结果内部排版优化 */
-        .bot-msg p { margin: 0 0 10px 0; }
-        .bot-msg h3 { margin-top: 15px; margin-bottom: 10px; font-size: 16px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-        .bot-msg ul { margin-top: 0; padding-left: 20px; }
-        .bot-msg strong { color: #b22222; } /* 重点词语微带暗红色，符合玄学氛围 */
+        /* 聊天区域 */
+        .chat-box { height: 400px; background: #fff; border-radius: 12px; overflow-y: auto; padding: 20px; border: 1px solid #eee; margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px; }
+        .message { padding: 12px 16px; border-radius: 8px; max-width: 85%; font-size: 15px; line-height: 1.6; }
+        .user-msg { background: var(--main-color); color: #fff; align-self: flex-end; }
+        .bot-msg { background: #f9f9fa; border: 1px solid #eee; align-self: flex-start; }
+        .input-area { display: flex; gap: 10px; }
+        .input-area input { flex: 1; }
+        button.primary-btn { background: var(--main-color); color: #fff; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>梅花义理推演系统</h1>
-        <p>大道至简，万物皆数。心诚则灵，直指本源。</p>
-    </div>
-    <div class="chat-box" id="chatBox">
-        <div class="message welcome-card">
-            <h3>☯ 欢迎来到专属推演殿堂</h3>
-            本系统融合传统《梅花易数》与高维逻辑，为您解析时空因果。您可以这样向大师提问：
-            <ul>
-                <li><b>直接描述困惑：</b>“我正在考虑换工作，目前是下午3点，吉凶如何？”</li>
-                <li><b>提供起卦参数：</b>“2025年10月1日，报数 3 和 8，问投资”</li>
-                <li><b>描述客观物象：</b>“刚才看到两只鸟飞过，落于西北方，求测一事”</li>
-            </ul>
-            请凝神静气，在下方输入您的心念。
+    <div class="container">
+        <div class="header">
+            <h1>梅花义理·数智引擎</h1>
+            <p>先起卦，后断语。逻辑严密，天机尽显。</p>
         </div>
-        <div class="loading" id="loading">大师正在静心推演，请稍候...</div>
-    </div>
-    <div class="input-area">
-        <input type="text" id="userInput" placeholder="输入您的起卦问题或时空信息..." onkeypress="if(event.key === 'Enter') sendMessage()">
-        <button onclick="sendMessage()" id="sendBtn">推演</button>
+
+        <div class="casting-panel">
+            <div class="tabs">
+                <div class="tab-btn active" onclick="switchTab(0)">时间起卦</div>
+                <div class="tab-btn" onclick="switchTab(1)">报数起卦</div>
+                <div class="tab-btn" onclick="switchTab(2)">手动选卦</div>
+            </div>
+
+            <div id="method0" class="method-content active">
+                <span style="font-size:13px; color:#888;">系统将根据当前精准时空参数自动推演</span>
+            </div>
+
+            <div id="method1" class="method-content">
+                <input type="number" id="num1" placeholder="第一个数">
+                <input type="number" id="num2" placeholder="第二个数">
+                <input type="number" id="num3" placeholder="动爻基数">
+            </div>
+
+            <div id="method2" class="method-content">
+                上卦：<select id="manualUpper">
+                    <option value="1">乾一</option><option value="2">兑二</option><option value="3">离三</option><option value="4">震四</option>
+                    <option value="5">巽五</option><option value="6">坎六</option><option value="7">艮七</option><option value="8">坤八</option>
+                </select>
+                下卦：<select id="manualLower">
+                    <option value="1">乾一</option><option value="2">兑二</option><option value="3">离三</option><option value="4">震四</option>
+                    <option value="5">巽五</option><option value="6">坎六</option><option value="7">艮七</option><option value="8">坤八</option>
+                </select>
+                动爻：<select id="manualMove">
+                    <option value="1">初爻</option><option value="2">二爻</option><option value="3">三爻</option>
+                    <option value="4">四爻</option><option value="5">五爻</option><option value="6">上爻</option>
+                </select>
+            </div>
+
+            <div class="gua-display" id="guaResult">
+                <div class="gua-item"><div class="gua-symbol" id="symBen"></div><div>本卦</div></div>
+                <div class="gua-item"><div class="gua-symbol" id="symHu"></div><div>互卦</div></div>
+                <div class="gua-item"><div class="gua-symbol" id="symBian"></div><div>变卦</div></div>
+                <div id="dongYaoInfo" style="font-size:12px; color:var(--accent-color); padding-top:10px;"></div>
+            </div>
+            
+            <div style="text-align:right; margin-top:15px;">
+                <button class="primary-btn" onclick="generateGua()">生成卦象</button>
+            </div>
+        </div>
+
+        <div class="chat-box" id="chatBox">
+            <div class="message bot-msg">请先在上方完成起卦，然后在下方输入您的困惑，最后点击“请大师断卦”。</div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="输入您的问题（如：问事业升迁...）">
+            <button class="primary-btn" onclick="sendToAI()">请大师断卦</button>
+        </div>
     </div>
 
     <script>
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const btn = document.getElementById('sendBtn');
-            const message = input.value.trim();
-            if (!message) return;
+        const symbols = ["", "☰", "☱", "☲", "☳", "☴", "☵", "☶", "☷"];
+        const guaNames = ["", "乾", "兑", "离", "震", "巽", "坎", "艮", "坤"];
+        let currentGuaData = null;
+        let activeTab = 0;
 
-            appendMessage(message, 'user-msg');
+        function switchTab(i) {
+            activeTab = i;
+            document.querySelectorAll('.tab-btn, .method-content').forEach((el, idx) => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn')[i].classList.add('active');
+            document.getElementById('method' + i).classList.add('active');
+        }
+
+        // 核心逻辑：梅花易数算法
+        function generateGua() {
+            let u, l, m;
+            const now = new Date();
+
+            if (activeTab === 0) { // 时间起卦 (简化版，可根据需要引入农历库)
+                u = (now.getHours() + now.getDate()) % 8 || 8;
+                l = (now.getMinutes() + now.getSeconds()) % 8 || 8;
+                m = (u + l) % 6 || 6;
+            } else if (activeTab === 1) { // 报数
+                u = parseInt(document.getElementById('num1').value) % 8 || 8;
+                l = parseInt(document.getElementById('num2').value) % 8 || 8;
+                m = parseInt(document.getElementById('num3').value) % 6 || 6;
+            } else { // 手动
+                u = parseInt(document.getElementById('manualUpper').value);
+                l = parseInt(document.getElementById('manualLower').value);
+                m = parseInt(document.getElementById('manualMove').value);
+            }
+
+            // 计算互卦和变卦逻辑（这里简略，实际可更复杂）
+            currentGuaData = {
+                upper: guaNames[u], lower: guaNames[l],
+                movingLine: m,
+                summary: `本卦为【${guaNames[u]}${guaNames[l]}】，第${m}爻动。`
+            };
+
+            document.getElementById('symBen').textContent = symbols[u] + symbols[l];
+            document.getElementById('symHu').textContent = "☯"; // 互卦计算略
+            document.getElementById('symBian').textContent = "❂"; // 变卦计算略
+            document.getElementById('dongYaoInfo').textContent = `动爻：第 ${m} 爻`;
+            document.getElementById('guaResult').style.display = 'flex';
+        }
+
+        async function sendToAI() {
+            if (!currentGuaData) return alert("请先生成卦象！");
+            const input = document.getElementById('userInput');
+            const q = input.value.trim();
+            if (!q) return alert("请输入您的问题！");
+
+            const fullPrompt = `【起卦结果】：${currentGuaData.summary}\n【求测问题】：${q}\n\n请作为梅花易数大师，直接针对以上确定的卦象和问题进行解析。`;
+            
+            appendMessage(q, 'user-msg');
             input.value = '';
             
-            // 锁定输入框，防止连续点击
-            input.disabled = true;
-            btn.disabled = true;
-            document.getElementById('loading').style.display = 'block';
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: message })
-                });
-                const data = await response.json();
-                
-                document.getElementById('loading').style.display = 'none';
-                input.disabled = false;
-                btn.disabled = false;
-                input.focus();
-                
-                if (data.reply) {
-                    appendMessage(data.reply, 'bot-msg', true);
-                } else {
-                    appendMessage("推演引擎发生扰动，请稍后再试。", 'bot-msg');
-                }
-            } catch (error) {
-                document.getElementById('loading').style.display = 'none';
-                input.disabled = false;
-                btn.disabled = false;
-                appendMessage("网络连接异常，无法触达推演引擎。", 'bot-msg');
-            }
+            // 后续调用 API 逻辑同前...
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: fullPrompt })
+            });
+            const data = await response.json();
+            appendMessage(data.reply, 'bot-msg', true);
         }
 
         function appendMessage(text, className, isMarkdown = false) {
             const box = document.getElementById('chatBox');
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${className}`;
-            
-            if (isMarkdown && typeof marked !== 'undefined') {
-                // 将大模型输出解析为精美图文排版
-                msgDiv.innerHTML = marked.parse(text);
-            } else if (!isMarkdown && className === 'user-msg') {
-                msgDiv.textContent = text; 
-            } else {
-                msgDiv.innerHTML = text.replace(/\n/g, '<br>');
-            }
-            
-            box.insertBefore(msgDiv, document.getElementById('loading'));
+            msgDiv.innerHTML = isMarkdown ? marked.parse(text) : text;
+            box.appendChild(msgDiv);
             box.scrollTop = box.scrollHeight;
         }
     </script>
