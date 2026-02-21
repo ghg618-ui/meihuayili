@@ -3,18 +3,21 @@ export default async function handler(req, res) {
 
     const userMessage = req.body.message;
 
-    // 💡 您的终极提示词，直接焊死在服务器端，前端绝对看不到！
+    // 💡 您的终极提示词，直接焊死在服务器端
     const SYSTEM_PROMPT = `你现在是顶级【梅花义理大师】。请根据梅花易数规则，给出深刻、一针见血的推演。包含体用生克与核心义理分析。`;
 
     try {
-        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        // 核心改动 1：换成谷歌的 OpenAI 兼容接口地址
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}` 
+                // 核心改动 2：呼叫环境变量里的谷歌密钥
+                'Authorization': `Bearer ${process.env.GOOGLE_API_KEY}` 
             },
             body: JSON.stringify({
-                model: 'deepseek-reasoner',
+                // 核心改动 3：换成您心心念念的顶级模型代号
+                model: 'gemini-3.1-pro', 
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     { role: 'user', content: userMessage }
