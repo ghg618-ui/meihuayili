@@ -17,7 +17,7 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
                 // 核心改动 3：换成您心心念念的顶级模型代号
-                model: 'gemini-2.5-pro', 
+                model: 'gemini-1.5-pro', 
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     { role: 'user', content: userMessage }
